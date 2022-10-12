@@ -6,6 +6,7 @@ from rdkit import Chem
 from rdkit.Chem import Descriptors
 from rdkit.Chem import FilterCatalog
 from rdkit.Chem import rdqueries 
+from tqdm import tqdm
 
 # Constant section
 total_id = []
@@ -66,11 +67,11 @@ def veber_drug_like_ness(tPSA,rotatable_bonds):
 	else :
 		return 0
 
-
+    # for row in tqdm(csv.reader(lines), total=len(lines)):
 i = 1
 with open('gdb13.rand1M.smi','r') as csvfile:
 	csvreader = csv.reader(csvfile)
-	for each_row in csvreader:
+	for each_row in tqdm(csvreader):
 		chem = each_row[0]
 		mol = Chem.MolFromSmiles(chem)
 		tPSA = Descriptors.TPSA(mol)
