@@ -33,6 +33,15 @@ total_veber_drug_check = []
 total_brenk = []
 total_pains = []
 
+# Constant variable pre-loaded
+
+params = FilterCatalog.FilterCatalogParams()
+params.AddCatalog(FilterCatalog.FilterCatalogParams.FilterCatalogs.BRENK)
+catalog = FilterCatalog.FilterCatalog(params)
+params1 = FilterCatalog.FilterCatalogParams()
+params1.AddCatalog(FilterCatalog.FilterCatalogParams.FilterCatalogs.PAINS)
+catalog1 = FilterCatalog.FilterCatalog(params1)
+
 # Drug likeness check with different functions
 
 def lipinski_drug_like_ness(H_bond_acceptors,H_bond_doner,Molecular_Weight,LogP):
@@ -71,19 +80,13 @@ def veber_drug_like_ness(tPSA,rotatable_bonds):
 		return 0
 
 def brenk(mol1):
-	params = FilterCatalog.FilterCatalogParams()
-	params.AddCatalog(FilterCatalog.FilterCatalogParams.FilterCatalogs.BRENK)
-	catalog = FilterCatalog.FilterCatalog(params)
 	if catalog.HasMatch(mol1) :
 		return 1
 	else:
 		return 0
 
 def pains(mol2):
-	params = FilterCatalog.FilterCatalogParams()
-	params.AddCatalog(FilterCatalog.FilterCatalogParams.FilterCatalogs.PAINS)
-	catalog = FilterCatalog.FilterCatalog(params)
-	if catalog.HasMatch(mol2):
+	if catalog1.HasMatch(mol2):
 		return 1
 	else:
 		return 0
