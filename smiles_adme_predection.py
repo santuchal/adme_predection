@@ -5,12 +5,14 @@ from matplotlib.patches import Ellipse
 from rdkit import Chem
 from rdkit.Chem import Descriptors
 from rdkit.Chem import FilterCatalog
-from rdkit.Chem import rdqueries 
+from rdkit.Chem import rdqueries
+from rdkit.Chem.rdMolDescriptors import CalcMolFormula 
 from tqdm import tqdm
 
 # Constant section
 total_id = []
 total_smiles = []
+total_formula = []
 total_num_of_hydrogen_doners = []
 total_num_of_hydrogen_acceptors = []
 total_molecular_weight = []
@@ -28,7 +30,8 @@ total_ghose_drug_check = []
 total_egan_drug_likeness_check = []
 total_mugge_drug_like_ness = []
 total_veber_drug_check = []
-
+total_brenk = []
+total_pains = []
 
 # Drug likeness check with different functions
 
@@ -67,13 +70,31 @@ def veber_drug_like_ness(tPSA,rotatable_bonds):
 	else :
 		return 0
 
-    # for row in tqdm(csv.reader(lines), total=len(lines)):
+def brenk(mol1):
+	params = FilterCatalog.FilterCatalogParams()
+	params.AddCatalog(FilterCatalog.FilterCatalogParams.FilterCatalogs.BRENK)
+	catalog = FilterCatalog.FilterCatalog(params)
+	if catalog.HasMatch(mol1) :
+		return 1
+	else:
+		return 0
+
+def pains(mol2):
+	params = FilterCatalog.FilterCatalogParams()
+	params.AddCatalog(FilterCatalog.FilterCatalogParams.FilterCatalogs.PAINS)
+	catalog = FilterCatalog.FilterCatalog(params)
+	if catalog.HasMatch(mol2):
+		return 1
+	else:
+		return 0
+
 i = 1
-with open('gdb13.rand1M.smi','r') as csvfile:
+with open('temp.smi','r') as csvfile:
 	csvreader = csv.reader(csvfile)
 	for each_row in tqdm(csvreader):
 		chem = each_row[0]
 		mol = Chem.MolFromSmiles(chem)
+		formula = CalcMolFormula(mol)
 		tPSA = Descriptors.TPSA(mol)
 		LogP = Descriptors.MolLogP(mol)
 		H_bond_doner = Chem.Lipinski.NumHDonors(mol)
@@ -86,6 +107,7 @@ with open('gdb13.rand1M.smi','r') as csvfile:
 		rotatable_bonds = Chem.Lipinski.NumRotatableBonds(mol)
 		carbon = Chem.rdqueries.AtomNumEqualsQueryAtom(6)
 		number_of_carbon = len(mol.GetAtomsMatchingQuery(carbon))
+
 		lipinski_check = lipinski_drug_like_ness(H_bond_acceptors,H_bond_doner,Molecular_Weight,LogP)
 		total_lipinski_check.append(lipinski_check)
 		ghose_drug_check_prefer = ghose_drug_like_ness_prefer(Molecular_Weight,LogP,molecular_refractivity,number_of_atoms)
@@ -99,6 +121,7 @@ with open('gdb13.rand1M.smi','r') as csvfile:
 		veber_drug_check = veber_drug_like_ness(tPSA,rotatable_bonds)
 		total_veber_drug_check.append(veber_drug_check)
 		total_smiles.append(chem)
+		total_formula.append(formula)
 		total_num_of_hydrogen_doners.append(H_bond_doner)
 		total_num_of_hydrogen_acceptors.append(H_bond_acceptors)
 		total_molecular_weight.append(Molecular_Weight)
@@ -110,15 +133,16 @@ with open('gdb13.rand1M.smi','r') as csvfile:
 		total_logP.append(LogP)
 		total_tPSA.append(tPSA)
 		total_carbon.append(number_of_carbon)
+		total_brenk.append(brenk(mol))
+		total_pains.append(pains(mol))
 		total_id.append(i)
 		i = i + 1
 
 
-zip_data = zip (total_id,total_smiles,total_molecular_weight,total_number_of_atoms,total_rotatable_bonds,total_num_of_hydrogen_acceptors,total_num_of_hydrogen_doners,total_molar_refractivity,total_tPSA,total_logP,total_hetro_atoms,total_number_of_rings,total_carbon,total_lipinski_check,total_ghose_drug_check_prefer,total_ghose_drug_check,total_egan_drug_likeness_check,total_mugge_drug_like_ness,total_veber_drug_check)
+zip_data = zip (total_id,total_smiles,total_formula,total_molecular_weight,total_number_of_atoms,total_rotatable_bonds,total_num_of_hydrogen_acceptors,total_num_of_hydrogen_doners,total_molar_refractivity,total_tPSA,total_logP,total_hetro_atoms,total_number_of_rings,total_carbon,total_lipinski_check,total_ghose_drug_check_prefer,total_ghose_drug_check,total_egan_drug_likeness_check,total_mugge_drug_like_ness,total_veber_drug_check,total_brenk,total_pains)
 
 with open('output.csv', 'w') as writeFile:
 	writer = csv.writer(writeFile, delimiter=",")
-	writer.writerow(["ID","SMILES", "Total Molecular Weight","Number of Atoms","Rotatable Bonds","NumHAcceptors", "NumHDonors","Total Molar Refractivity","tPSA","LogP","Hetro Atoms","Number of Rings","Total Carbon","Lipinski Check","Ghose Check Prefer","Ghose Drug Likeness check", "Egan Druglikeness", "Muggie Druglikeness Check","Veber Druglikeness Check"])
+	writer.writerow(["ID","SMILES", "Formula", "Total Molecular Weight","Number of Atoms","Rotatable Bonds","NumHAcceptors", "NumHDonors","Total Molar Refractivity","tPSA","LogP","Hetro Atoms","Number of Rings","Total Carbon","Lipinski Check","Ghose Check Prefer","Ghose Drug Likeness check", "Egan Druglikeness", "Mueggie Druglikeness Check","Veber Druglikeness Check","Brenk", "PAINS"])
 	writer.writerows(zip_data)
 writeFile.close()
-
