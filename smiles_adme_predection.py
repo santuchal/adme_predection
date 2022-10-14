@@ -70,6 +70,31 @@ def pains(mol2):
 	else:
 		return 0
 
+def boiled_egg_graph_save(tPSA,LogP,i):
+	BOILED_EGG_HIA_ELLIPSE = Ellipse((71.051, 2.292), 142.081, 8.740, -1.031325)
+	BOILED_EGG_BBB_ELLIPSE = Ellipse((38.117, 3.177), 82.061, 5.557, -0.171887)
+	BOILED_EGG_BBB_ELLIPSE.contains_point((tPSA, LogP))
+	BOILED_EGG_HIA_ELLIPSE.contains_point((tPSA, LogP))
+	fig, axis = plt.subplots()
+	axis.patch.set_facecolor("lightgrey")
+	white = BOILED_EGG_HIA_ELLIPSE
+	yolk = BOILED_EGG_BBB_ELLIPSE
+	white.set_clip_box(axis.bbox)
+	white.set_facecolor("white")
+	axis.add_artist(white)
+	yolk.set_clip_box(axis.bbox)
+	yolk.set_facecolor("orange")
+	axis.add_artist(yolk)
+	axis.set_xlim(-10, 200)
+	axis.set_ylim(-4, 8)
+	axis.set_xlabel("TPSA")
+	axis.set_ylabel("LOGP")
+	axis.scatter(tPSA, LogP, zorder=10)
+	plt.savefig("./graph/"+str(i)+".png")
+	plt.close()
+	return 0
+
+
 df = pd.DataFrame(columns=["SMILES", "Formula", "Total Molecular Weight","Number of Atoms","Number of Aromatic Atoms","Fraction csp3","Rotatable Bonds","NumHAcceptors", "NumHDonors","Total Molar Refractivity","tPSA","LogP","Hetro Atoms","Number of Rings","Total Carbon","Lipinski Check","Ghose Check Prefer","Ghose Drug Likeness check", "Egan Druglikeness", "Mueggie Druglikeness Check","Veber Druglikeness Check","Brenk", "PAINS","Synthetic Accessibility"])
 
 i = 1
@@ -98,6 +123,7 @@ with open('temp.smi','r') as csvfile:
 		mugge_drug_check = mugge_drug_like_ness(Molecular_Weight, H_bond_acceptors, H_bond_doner, tPSA, LogP, number_of_rings,number_of_hetro_atoms,number_of_carbon,rotatable_bonds)
 		veber_drug_check = veber_drug_like_ness(tPSA,rotatable_bonds)
 		df.loc[i] = [chem, formula,Molecular_Weight, number_of_atoms, len(list(mol.GetAromaticAtoms())), CalcFractionCSP3(mol), rotatable_bonds, H_bond_acceptors, H_bond_doner, molecular_refractivity, tPSA, LogP, number_of_hetro_atoms,number_of_rings,number_of_carbon,lipinski_check,ghose_drug_check_prefer,ghose_drug_like_ness_check,egan_drug_check,mugge_drug_check,veber_drug_check,brenk(mol),pains(mol),sascorer.calculateScore(mol)]
+		boiled_egg_graph_save(tPSA,LogP,i)
 		i = i + 1
 
 df.to_csv('output1.csv')
