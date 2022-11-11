@@ -14,3 +14,5 @@
 ###### In this programme take input a .csv or .smi files. It'll generate almost identical value like SwissADME. 
 
 ##### You need to update smiles_adme_predection files with your input file name and you can get all the value in a .csv file and saved as output.csv in the same directory. 
+
+ #adme #ADME 
