@@ -131,7 +131,7 @@ with open('temp.smi','r') as csvfile:
 		boiled_egg_graph_save(tPSA,LogP,i)
 		i = i + 1
 
-writer = pd.ExcelWriter('adme_write.xlsx', engine='xlsxwriter')
+writer = pd.ExcelWriter('adme_write_nil.xlsx', engine='xlsxwriter')
 df.to_excel(writer, sheet_name='Sheet1')
 workbook  = writer.book
 worksheet = writer.sheets['Sheet1']

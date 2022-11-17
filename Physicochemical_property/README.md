@@ -21,8 +21,25 @@ This post is a step-by-step implementation of my approach to calculating the ADM
 *   [x] **tPSA**
 *   [x] **LogP**
 *   [ ] **pKa**
-*   [ ] **LogS**
+*   [x] **LogS**
 *   [ ] **LogD7.4**
+
+---
+
+***LogS*** 
+
+
+
+The work of Delaney provided the following linear regression equation:
+
+    LogS = 0.16 - 0.63 cLogP - 0.0062 MW + 0.066 RB - 0.74 AP
+
+The reproduction by Pat Walters
+
+provided the following:
+
+    LogS = 0.26 - 0.74 LogP - 0.0066 MW + 0.0034 RB - 0.42 AP
+
 
 ---
 

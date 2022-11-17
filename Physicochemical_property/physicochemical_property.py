@@ -6,13 +6,17 @@ from rdkit.Chem import AllChem
 from rdkit.Chem.EnumerateStereoisomers import EnumerateStereoisomers, StereoEnumerationOptions
 from rdkit.Chem import Descriptors,FilterCatalog,rdqueries,RDConfig
 from rdkit.Chem.rdMolDescriptors import CalcMolFormula, CalcFractionCSP3
+# from rdkit.Chem.rdchem import GetNumHeavyAtoms
 sys.path.append(os.path.join(RDConfig.RDContribDir, 'SA_Score'))
 import sascorer
 
 import pandas as pd
 from tqdm import tqdm
 
-df = pd.DataFrame(columns=["SMILES", "Formula", "Total Molecular Weight","Isomers", "Total Isomers in SMILES", "Number of Atoms","Number of Aromatic Atoms","Fraction csp3","Rotatable Bonds","NumHAcceptors", "NumHDonors","Total Molar Refractivity","tPSA","LogP","Hetro Atoms","Number of Rings","Total Carbon","Synthetic Accessibility"])
+df = pd.DataFrame(columns=["SMILES", "Formula", "Total Molecular Weight","Isomers", "Total Isomers in SMILES", "Number of Atoms","Number of Aromatic Atoms","Fraction csp3","Rotatable Bonds","NumHAcceptors", "NumHDonors","Total Molar Refractivity","tPSA","LogP","Log S (delancy equation)","Hetro Atoms","Number of Rings","Total Carbon","Synthetic Accessibility"])
+
+def logs_delancy_equation(LogP, Molecular_Weight, rotatable_bonds, Aromatic_proportion):
+	return 0.16 - (0.63 * LogP) - (0.0062 * Molecular_Weight) + (0.066 * rotatable_bonds) - (0.74 * Aromatic_proportion)
 
 i = 1
 with open('temp.smi','r') as csvfile:
@@ -42,14 +46,18 @@ with open('temp.smi','r') as csvfile:
 		LogP = Descriptors.MolLogP(mol)
 		H_bond_doner = Chem.Lipinski.NumHDonors(mol)
 		H_bond_acceptors = Chem.Lipinski.NumHAcceptors(mol)
-		
+		aromatic_atoms = len(list(mol.GetAromaticAtoms()))
+		heavy_atoms = Chem.rdchem.GetNumHeavyAtoms(mol)
+		Aromatic_proportion = aromatic_atoms / heavy_atoms
 		molecular_refractivity = Chem.Crippen.MolMR(mol)
 		number_of_rings = Descriptors.rdMolDescriptors.CalcNumRings(mol)
 		number_of_hetro_atoms = Descriptors.rdMolDescriptors.CalcNumHeteroatoms(mol)
 		rotatable_bonds = Chem.Lipinski.NumRotatableBonds(mol)
 		carbon = Chem.rdqueries.AtomNumEqualsQueryAtom(6)
 		number_of_carbon = len(mol.GetAtomsMatchingQuery(carbon))
-		df.loc[i] = [chem, formula,Molecular_Weight, len(isomers),total_isomers_in_smiles, number_of_atoms, len(list(mol.GetAromaticAtoms())), CalcFractionCSP3(mol), rotatable_bonds, H_bond_acceptors, H_bond_doner, molecular_refractivity, tPSA, LogP, number_of_hetro_atoms,number_of_rings,number_of_carbon,sascorer.calculateScore(mol)]
+		logs_delancy = logs_delancy_equation(LogP, Molecular_Weight, rotatable_bonds, Aromatic_proportion)
+		print("logs_delancy",logs_delancy)
+		df.loc[i] = [chem, formula,Molecular_Weight, len(isomers),total_isomers_in_smiles, number_of_atoms, aromatic_atoms, CalcFractionCSP3(mol),rotatable_bonds, H_bond_acceptors, H_bond_doner, molecular_refractivity, tPSA, LogP, logs_delancy,number_of_hetro_atoms,number_of_rings,number_of_carbon,sascorer.calculateScore(mol)]
 		i = i + 1
 
 df.to_csv('physicochemical_property.csv')
